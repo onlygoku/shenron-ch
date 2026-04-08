@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shenron's Ultimate Wish</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Raleway:wght@300;400;600&display=swap');
+
+    :root {
+      --gold: #f5c518;
+      --deep-gold: #b8860b;
+      --orange: #ff6a00;
+      --green: #00ff88;
+      --dark: #050a05;
+      --dragon-green: #00c94f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark);
+      color: #e0e0e0;
+      font-family: 'Raleway', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Starfield ── */
+    #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle var(--d) ease-in-out infinite; }
+    @keyframes twinkle { 0%,100%{opacity:.1} 50%{opacity:1} }
+
+    /* ── Dragon SVG header ── */
+    header {
+      position: relative; z-index: 2;
+      width: 100%; text-align: center;
+      padding: 40px 20px 10px;
+    }
+
+    .dragon-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+
+    .title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.4rem, 5vw, 3rem);
+      background: linear-gradient(135deg, var(--gold), var(--orange), var(--deep-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      letter-spacing: 2px;
+      animation: flicker 4s infinite;
+    }
+    @keyframes flicker { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.7} 95%{opacity:1} }
+
+    .subtitle {
+      font-size: .85rem;
+      color: var(--deep-gold);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    /* ── Dragon Balls grid ── */
+    .balls-section {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 30px 20px;
+      width: 100%; max-width: 860px;
+    }
+
+    .balls-section h2 {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--gold);
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .balls-grid {
+      display: flex; flex-wrap: wrap; gap: 18px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .ball {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 32%, #ffe88a, #f5a623 55%, #c55e00);
+      box-shadow: 0 0 18px #f5a62388, 0 0 40px #f5a62322, inset -4px -6px 10px #c55e0066;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform .25s, box-shadow .25s;
+      border: 2px solid #f5c51844;
+    }
+    .ball:hover { transform: scale(1.13) rotate(-5deg); box-shadow: 0 0 32px #f5c518bb; }
+    .ball.collected { box-shadow: 0 0 30px #f5c518, 0 0 60px #f5c51866; }
+    .ball.collected::after {
+      content: '✓';
+      position: absolute; top: -8px; right: -8px;
+      font-size: .7rem; background: var(--dragon-green);
+      color: #000; border-radius: 50%; width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* stars on balls */
+    .ball-stars { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; width: 34px; }
+    .bstar { color: #cc1111; font-size: 10px; line-height: 1; text-shadow: 0 0 4px #ff000066; }
+
+    /* ── Puzzle panels ── */
+    .panel {
+      background: linear-gradient(145deg, #0a1a0a, #080f08);
+      border: 1px solid #1a4a1a44;
+      border-radius: 12px;
+      padding: 28px 32px;
+      width: 100%; max-width: 700px;
+      margin: 10px auto;
+      position: relative; z-index: 2;
+      display: none;
+      animation: fadein .4s ease;
+    }
+    .panel.active { display: block; }
+    @keyframes fadein { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+    .panel h3 {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--dragon-green);
+      font-size: 1rem;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #1a4a1a;
+      padding-bottom: 10px;
+    }
+
+    .panel p { font-size: .88rem; color: #aaa; line-height: 1.8; margin-bottom: 14px; }
+    .panel code {
+      display: block;
+      background: #000c00;
+      border: 1px solid #1a4a1a;
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: .82rem;
+      color: #00ff88;
+      word-break: break-all;
+      margin: 12px 0;
+      white-space: pre-wrap;
+    }
+
+    /* ── Input row ── */
+    .input-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .input-row input {
+      flex: 1; min-width: 180px;
+      background: #000c00;
+      border: 1px solid #1a4a1a;
+      border-radius: 6px;
+      color: var(--green);
+      font-family: 'Courier New', monospace;
+      font-size: .9rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border .2s;
+    }
+    .input-row input:focus { border-color: var(--dragon-green); }
+    .input-row button {
+      background: linear-gradient(135deg, #006622, #00aa44);
+      border: none; border-radius: 6px;
+      color: #000; font-weight: 700;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: .78rem;
+      padding: 10px 20px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity .2s, transform .15s;
+    }
+    .input-row button:hover { opacity: .85; transform: scale(1.04); }
+
+    .msg { font-size: .82rem; margin-top: 8px; height: 18px; }
+    .msg.ok { color: var(--dragon-green); }
+    .msg.err { color: #ff4444; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      position: relative; z-index: 2;
+      width: 100%; max-width: 700px;
+      margin: 24px auto 0;
+      padding: 0 20px;
+    }
+    .progress-label { font-size: .75rem; color: #555; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+    .progress-bar {
+      height: 6px; background: #111;
+      border-radius: 4px; overflow: hidden;
+      border: 1px solid #1a4a1a44;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #006622, #00ff88);
+      transition: width .6s ease;
+      box-shadow: 0 0 8px #00ff8866;
+    }
+
+    /* ── Final wish ── */
+    #wish-gate {
+      display: none;
+      flex-direction: column; align-items: center;
+      position: relative; z-index: 2;
+      width: 100%; max-width: 700px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    #wish-gate.open { display: flex; }
+
+    #shenron-eye {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #00ff88, #006622, #000);
+      box-shadow: 0 0 40px #00ff88, 0 0 80px #00ff8844;
+      margin-bottom: 28px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+    #wish-gate h2 {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--gold);
+      font-size: 1.3rem;
+      margin-bottom: 14px;
+    }
+    #wish-gate p { color: #aaa; font-size: .88rem; line-height: 1.9; margin-bottom: 20px; }
+
+    #final-input {
+      background: #000c00;
+      border: 2px solid var(--dragon-green);
+      border-radius: 8px;
+      color: var(--green);
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      padding: 12px 20px;
+      width: 100%; max-width: 460px;
+      text-align: center;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    #final-btn {
+      background: linear-gradient(135deg, var(--gold), var(--orange));
+      border: none; border-radius: 8px;
+      color: #000; font-weight: 900;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: .9rem;
+      padding: 13px 32px;
+      cursor: pointer;
+      letter-spacing: 2px;
+    }
+    #final-msg { margin-top: 12px; font-size: .85rem; }
+
+    #flag-reveal {
+      display: none;
+      margin-top: 24px;
+      background: #000c00;
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      padding: 22px 28px;
+      text-align: center;
+    }
+    #flag-reveal.show { display: block; animation: fadein .5s ease; }
+    #flag-reveal p { color: var(--gold); font-family: 'Cinzel Decorative', serif; font-size: .95rem; margin-bottom: 10px; }
+    #flag-reveal code { font-size: 1.05rem; color: var(--dragon-green); }
+
+    footer {
+      position: relative; z-index: 2;
+      padding: 30px 0 20px;
+      font-size: .7rem;
+      color: #222;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stars -->
+<canvas id="stars"></canvas>
+
+<header>
+  <div class="dragon-wrap">
+    <!-- Shenron SVG illustration -->
+    <svg width="340" height="120" viewBox="0 0 340 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="eyeglow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00ff88"/>
+          <stop offset="100%" stop-color="#00662200"/>
+        </radialGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- body -->
+      <path d="M20,80 Q60,20 110,55 Q150,80 190,40 Q230,10 270,50 Q300,80 330,60"
+            fill="none" stroke="#00aa44" stroke-width="14" stroke-linecap="round" opacity=".9" filter="url(#glow)"/>
+      <path d="M20,80 Q60,20 110,55 Q150,80 190,40 Q230,10 270,50 Q300,80 330,60"
+            fill="none" stroke="#00ff88" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+      <!-- scales -->
+      <path d="M20,80 Q60,20 110,55 Q150,80 190,40"
+            fill="none" stroke="#006622" stroke-width="3" stroke-dasharray="8 6" stroke-linecap="round"/>
+      <!-- head -->
+      <ellipse cx="330" cy="60" rx="18" ry="12" fill="#006622" filter="url(#glow)"/>
+      <ellipse cx="330" cy="60" rx="16" ry="10" fill="#00aa44"/>
+      <!-- eye -->
+      <circle cx="336" cy="56" r="5" fill="url(#eyeglow)" filter="url(#glow)"/>
+      <circle cx="336" cy="56" r="2.5" fill="#00ff88"/>
+      <circle cx="337" cy="55" r="1" fill="#fff"/>
+      <!-- whiskers -->
+      <line x1="342" y1="55" x2="355" y2="48" stroke="#f5c518" stroke-width="1.5" opacity=".7"/>
+      <line x1="342" y1="58" x2="356" y2="58" stroke="#f5c518" stroke-width="1.5" opacity=".7"/>
+      <!-- horns -->
+      <path d="M326,50 Q322,40 325,32" fill="none" stroke="#f5c518" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M332,48 Q335,38 338,30" fill="none" stroke="#f5c518" stroke-width="2" stroke-linecap="round"/>
+      <!-- tail swirl -->
+      <path d="M20,80 Q10,90 15,98 Q22,108 30,100 Q36,93 28,87"
+            fill="none" stroke="#00aa44" stroke-width="8" stroke-linecap="round" filter="url(#glow)"/>
+      <!-- claws -->
+      <path d="M110,55 L100,70 M110,55 L106,72 M110,55 L114,71" stroke="#00ff88" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+      <path d="M190,40 L180,55 M190,40 L188,57 M190,40 L196,56" stroke="#00ff88" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+    </svg>
+  </div>
+  <div class="title">Shenron's Ultimate Wish</div>
+  <div class="subtitle">1000 pts &nbsp;·&nbsp; Web / Crypto / Reversing</div>
+</header>
+
+<!-- Progress -->
+<div class="progress-wrap">
+  <div class="progress-label">Dragon Balls Collected &nbsp;<span id="count">0</span> / 7</div>
+  <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+</div>
+
+<!-- Balls -->
+<div class="balls-section">
+  <h2>Collect the 7 Dragon Balls</h2>
+  <div class="balls-grid" id="balls-grid">
+    <!-- rendered by JS -->
+  </div>
+</div>
+
+<!-- ──────────────────────────────── PANELS ──────────────────────────────── -->
+
+<!-- Ball 1 — Base64 -->
+<div class="panel" id="panel-1">
+  <h3>★ Ball 1 — The Echoed Wish</h3>
+  <p>The Dragon's memory is encoded. Decode this ancient inscription to find the first fragment.</p>
+  <code>ZmxhZ3twYXJ0MV8=</code>
+  <div class="input-row">
+    <input id="i1" placeholder="" />
+    <button onclick="check(1)">Offer</button>
+  </div>
+  <div class="msg" id="m1"></div>
+</div>
+
+<!-- Ball 2 — ROT13 -->
+<div class="panel" id="panel-2">
+  <h3>★★ Ball 2 — The Twisted Tongue</h3>
+  <p>Shenron's second guardian speaks in riddles — every letter shifted by the sacred number thirteen.</p>
+  <code>Gur_qentba_njnxraf</code>
+  <div class="input-row">
+    <input id="i2" placeholder="" />
+    <button onclick="check(2)">Offer</button>
+  </div>
+  <div class="msg" id="m2"></div>
+</div>
+
+<!-- Ball 3 — Hex -->
+<div class="panel" id="panel-3">
+  <h3>★★★ Ball 3 — The Hex Seal</h3>
+  <p>The third ball is sealed with an ancient hex inscription. Convert the runes to reveal the fragment.</p>
+  <code>77 68 65 6e 5f 74 68 65 5f</code>
+  <div class="input-row">
+    <input id="i3" placeholder="" />
+    <button onclick="check(3)">Offer</button>
+  </div>
+  <div class="msg" id="m3"></div>
+</div>
+
+<!-- Ball 4 — JS reverse engineering -->
+<div class="panel" id="panel-4">
+  <h3>★★★★ Ball 4 — The Obfuscated Scales</h3>
+  <p>Deep in Shenron's scales, a function guards the fourth fragment. What does it return?</p>
+  <code id="c4">function shenron(s){
+  return s.split('').map((c,i)=>
+    String.fromCharCode(c.charCodeAt(0) ^ [0x13,0x37,0x07,0x42][i%4])
+  ).join('');
+}
+[119,94,98,118,93,80,118,99,95,101,125,122]</code>
+  <div class="input-row">
+    <input id="i4" placeholder="" />
+    <button onclick="check(4)">Offer</button>
+  </div>
+  <div class="msg" id="m4"></div>
+</div>
+
+<!-- Ball 5 — Binary -->
+<div class="panel" id="panel-5">
+  <h3>★★★★★ Ball 5 — The Binary Dragon</h3>
+  <p>Shenron's fifth scale is written in the language of machines. Interpret the binary sequence.</p>
+  <code>01100111 01110010 01100001 01101110 01110100 01110011 5f</code>
+  <div class="input-row">
+    <input id="i5" placeholder="" />
+    <button onclick="check(5)">Offer</button>
+  </div>
+  <div class="msg" id="m5"></div>
+</div>
+
+<!-- Ball 6 — Hash lookup / cipher -->
+<div class="panel" id="panel-6">
+  <h3>★★★★★★ Ball 6 — The Forbidden Hash</h3>
+  <p>The sixth guardian sealed the fragment within an ancient cipher.</p>
+  <code>Encoded: WLIRE_ALL</code>
+  <div class="input-row">
+    <input id="i6" placeholder="" />
+    <button onclick="check(6)">Offer</button>
+  </div>
+  <div class="msg" id="m6"></div>
+</div>
+
+<!-- Ball 7 — Final logic puzzle -->
+<div class="panel" id="panel-7">
+  <h3>★★★★★★★ Ball 7 — The Ultimate Scale</h3>
+  <p>The seventh and final fragment is concealed within this page. It is not stored — it is computed. Find it.</p>
+  <div class="input-row">
+    <input id="i7" placeholder="" />
+    <button onclick="check(7)">Offer</button>
+  </div>
+  <div class="msg" id="m7"></div>
+</div>
+
+<!-- ── Wish Gate ── -->
+<div id="wish-gate">
+  <div id="shenron-eye"></div>
+  <h2>All 7 Dragon Balls Gathered!</h2>
+  <p>Shenron has awakened. Speak your wish.</p>
+  <input id="final-input" placeholder="" />
+  <button id="final-btn" onclick="submitFlag()">Speak Your Wish</button>
+  <div class="msg" id="final-msg"></div>
+  <div id="flag-reveal">
+    <p>🐉 Shenron grants your wish! 🐉</p>
+    <code id="flag-text"></code>
+  </div>
+</div>
+
+<footer>CTF Challenge &nbsp;·&nbsp; Shenron's Ultimate Wish &nbsp;·&nbsp; 1000 pts</footer>
+
+<script>
+(function(){
+  const c=document.getElementById('stars');
+  const ctx=c.getContext('2d');
+  c.width=window.innerWidth; c.height=window.innerHeight;
+  for(let i=0;i<220;i++){
+    const x=Math.random()*c.width, y=Math.random()*c.height;
+    const r=Math.random()*1.5;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.8+.1})`;
+    ctx.fill();
+  }
+  window.addEventListener('resize',()=>{c.width=window.innerWidth;c.height=window.innerHeight;});
+})();
+
+const collected = new Set();
+
+const CORRECT = {
+  1: 'flag{part1_',
+  2: 'The_dragon_awakens',
+  3: 'when_the_',
+  4: _xorResult(),
+  5: 'grants_',
+  6: _vigenereDecodeAll(),
+  7: _finalFragment(),
+};
+
+function _xorResult(){
+  const b=[119,94,98,118,93,80,118,99,95,101,125,122];
+  const k=[0x13,0x37,0x07,0x42];
+  return b.map((v,i)=>String.fromCharCode(v^k[i%4])).join('');
+}
+
+function _vigenereDecodeAll(){
+  const c='WLIRE_ALL',k='shenron';
+  let r='',ki=0;
+  for(let i=0;i<c.length;i++){
+    const ch=c[i];
+    if(ch>='A'&&ch<='Z'){r+=String.fromCharCode((ch.charCodeAt(0)-65-(k[ki%k.length].charCodeAt(0)-97)+26)%26+65);ki++;}
+    else r+=ch;
+  }
+  return r;
+}
+
+function _finalFragment(){
+  const x=[119,105,115,104,101,115];
+  return x.map(c=>String.fromCharCode(c)).join('');
+}
+
+// ─── Balls render ─────────────────────────────────────────────────────
+(function(){
+  const grid=document.getElementById('balls-grid');
+  for(let n=1;n<=7;n++){
+    const div=document.createElement('div');
+    div.className='ball'; div.id='ball-'+n;
+    div.title='Dragon Ball '+n;
+    const s=document.createElement('div'); s.className='ball-stars';
+    for(let j=0;j<n;j++){
+      const sp=document.createElement('span'); sp.className='bstar'; sp.textContent='★'; s.appendChild(sp);
+    }
+    div.appendChild(s);
+    div.onclick=()=>openPanel(n);
+    grid.appendChild(div);
+  }
+})();
+
+// ─── Panel logic ──────────────────────────────────────────────────────
+let currentPanel=0;
+function openPanel(n){
+  if(currentPanel) document.getElementById('panel-'+currentPanel).classList.remove('active');
+  if(currentPanel===n){ currentPanel=0; return; }
+  currentPanel=n;
+  document.getElementById('panel-'+n).classList.add('active');
+  document.getElementById('panel-'+n).scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function check(n){
+  const val=document.getElementById('i'+n).value.trim();
+  const msg=document.getElementById('m'+n);
+  if(val===CORRECT[n]){
+    msg.textContent='✓ Fragment accepted — Dragon Ball '+n+' obtained!';
+    msg.className='msg ok';
+    collect(n);
+  } else {
+    msg.textContent='✗ Wrong offering. Shenron is displeased.';
+    msg.className='msg err';
+  }
+}
+
+function collect(n){
+  if(collected.has(n)) return;
+  collected.add(n);
+  document.getElementById('ball-'+n).classList.add('collected');
+  const pct=(collected.size/7*100).toFixed(1);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('count').textContent=collected.size;
+  if(collected.size===7) setTimeout(summonShenron,600);
+}
+
+function summonShenron(){
+  document.getElementById('wish-gate').classList.add('open');
+  document.getElementById('wish-gate').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function submitFlag(){
+  const val=document.getElementById('final-input').value.trim();
+  const FLAG=`CTF{${CORRECT[1]}${CORRECT[2]}_${CORRECT[3]}${CORRECT[4]}_${CORRECT[5]}${CORRECT[6]}_${CORRECT[7]}}`;
+  const msg=document.getElementById('final-msg');
+  if(val===FLAG){
+    msg.textContent='🐉 WISH GRANTED! Shenron acknowledges your mastery!';
+    msg.className='msg ok';
+    document.getElementById('flag-text').textContent=FLAG;
+    document.getElementById('flag-reveal').classList.add('show');
+  } else {
+    msg.textContent='✗ Unworthy wish. Gather all fragments correctly.';
+    msg.className='msg err';
+  }
+}
+</script>
+</body>
+</html>
