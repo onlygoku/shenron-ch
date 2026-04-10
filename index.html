@@ -583,9 +583,13 @@ function summonShenron(){
 
 function submitFlag(){
   const val=document.getElementById('final-input').value.trim();
+  
+  // Dynamically calculate the final flag based on all 7 solver outputs
   const FLAG='CTF{'+[1,2,3,4,5,6,7].map(n=>solvers[n]()).join('')+'}';
   const msg=document.getElementById('final-msg');
-  if(val===FLAG){
+
+  // Case-insensitive comparison for the final constructed flag
+  if(val.toLowerCase() === FLAG.toLowerCase()){
     msg.textContent='🐉 WISH GRANTED! Shenron acknowledges your mastery!';
     msg.className='msg ok';
     document.getElementById('flag-text').textContent=FLAG;
@@ -595,6 +599,7 @@ function submitFlag(){
     msg.className='msg err';
   }
 }
+</script>
 </script>
 </body>
 </html>
